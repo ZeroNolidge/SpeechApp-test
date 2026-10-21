@@ -1,7 +1,7 @@
 // Rory's Talk Trail service worker.
 // Network first, so the app is always the latest version when online; falls back to the
-// cached copy when offline. CI replaces 5941bb1-test4 on every deploy so new versions take over.
-const CACHE = 'speechapp-test-5941bb1-test4';
+// cached copy when offline. CI replaces 2200cb4-test5 on every deploy so new versions take over.
+const CACHE = 'speechapp-test-2200cb4-test5';
 // Files whose name changes whenever their content does (the .wasm, Rory's voice clips) live here
 // across versions, so they're only downloaded once; old ones are tidied up below.
 const STATIC = 'speechapp-test-static';
