@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <title>Rory&#39;s Talk Trail</title>
+    <meta name="description" content="A paper-craft adventure that helps young children practise talking, letters, reading, numbers and patterns.">
+    <meta name="theme-color" content="#F5E6C8">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Talk Trail">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #F5E6C8; touch-action: none; overscroll-behavior: none; }
+        #loading { position: fixed; inset: 0; display: flex; flex-direction: column; gap: 24px; align-items: center;
+                   justify-content: center; font: bold 28px sans-serif; color: #3B2A4A; text-align: center; }
+        #retry { display: none; font: bold 26px sans-serif; color: #3B2A4A; background: #FFD54F; border: 0;
+                 border-radius: 999px; padding: 22px 40px; box-shadow: 0 6px 0 #C9A227, 0 10px 16px rgba(0,0,0,.25); }
+        #retryNote { display: none; font: 18px sans-serif; max-width: 520px; padding: 0 20px; }
+    </style>
+</head>
+<body>
+<div id="loading">
+    <div>Loading…</div>
+    <div style="font: 18px sans-serif">The first time can take a minute.</div>
+    <button id="retry">🔄 Tap to try again</button>
+    <div id="retryNote">The app is taking a long time to start. Trying again fetches a fresh copy (your child's progress is kept).</div>
+</div>
+<script>
+    // If the app doesn't start (a slow connection, or an old copy mixed with a new one),
+    // offer a big "try again" that clears the saved copy of the app and reloads. Progress is
+    // kept: it lives in localStorage, which this doesn't touch.
+    (function () {
+        function offerRetry() {
+            var l = document.getElementById('loading');
+            if (!l) return;
+            document.getElementById('retry').style.display = 'block';
+            document.getElementById('retryNote').style.display = 'block';
+        }
+        window.addEventListener('error', function () { setTimeout(offerRetry, 1500); });
+        window.addEventListener('unhandledrejection', function () { setTimeout(offerRetry, 1500); });
+        setTimeout(offerRetry, 20000);
+        document.getElementById('retry').addEventListener('click', function () {
+            var jobs = [];
+            if ('serviceWorker' in navigator) {
+                jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); }));
+            }
+            if (window.caches) {
+                jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf('speechapp-test-') === 0; }).map(function (k) { return caches.delete(k); })); }));
+            }
+            Promise.all(jobs).catch(function () {}).then(function () { location.reload(); });
+        });
+    })();
+</script>
+<script src="talkandlearn.js"></script>
+<script>
+    // Works offline and picks up new versions: see sw.js.
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+        // Once the service worker is running, every file is saved: the app works offline.
+        navigator.serviceWorker.ready.then(() => { window.__tlOffline = true; });
+    }
+    // Chrome/Android: keep the "install" offer so the grown-ups page can show an Install button.
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.__tlInstall = e; });
+    // After the page reloaded by itself, the app opens straight back where he was (no start
+    // screen), so his first touch anywhere turns the sound back on.
+    window.addEventListener('pointerdown', function unlock() {
+        window.removeEventListener('pointerdown', unlock, true);
+        try { if (window.__tlAudio && window.__tlAudio.state === 'suspended') window.__tlAudio.resume(); } catch (e) {}
+        try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) {}
+    }, true);
+    // Keep the screen on while he plays, so the tablet doesn't sleep in the middle of a story
+    // (and the browser doesn't drop the page). After 10 minutes with no touch it may sleep again.
+    (function () {
+        let lock = null, lastTouch = Date.now();
+        function want() { return document.visibilityState === 'visible' && Date.now() - lastTouch < 10 * 60 * 1000; }
+        function take() {
+            if (lock || !want() || !navigator.wakeLock) return;
+            navigator.wakeLock.request('screen').then(l => { lock = l; l.addEventListener('release', () => { lock = null; }); }).catch(() => {});
+        }
+        window.addEventListener('pointerdown', () => { lastTouch = Date.now(); take(); }, true);
+        document.addEventListener('visibilitychange', take);
+        setInterval(() => { if (lock && !want()) { lock.release().catch(() => {}); lock = null; } }, 30000);
+    })();
+    // Keep progress safe: ask the browser not to clear this app's saved data (on the first tap,
+    // which some browsers need before they'll say yes).
+    window.addEventListener('pointerdown', function once() {
+        window.removeEventListener('pointerdown', once);
+        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().then((ok) => { window.__tlPersisted = ok; }); } catch (e) {}
+    });
+</script>
+</body>
+</html>
