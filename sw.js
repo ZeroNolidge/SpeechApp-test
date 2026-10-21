@@ -1,13 +1,13 @@
 // Rory's Talk Trail service worker.
 // Network first, so the app is always the latest version when online; falls back to the
-// cached copy when offline. CI replaces 245c427-test2 on every deploy so new versions take over.
-const CACHE = 'speechapp-test-245c427-test2';
+// cached copy when offline. CI replaces b06ec70-test3 on every deploy so new versions take over.
+const CACHE = 'speechapp-test-b06ec70-test3';
 // Files whose name changes whenever their content does (the .wasm, Rory's voice clips) live here
 // across versions, so they're only downloaded once; old ones are tidied up below.
 const STATIC = 'speechapp-test-static';
 
 // Every file of this build (CI fills this in), so the whole app works offline after one visit.
-const PRECACHE = ["9937c8fe3952f064b64a.wasm", "audio/letters.html", "audio/manifest.json", "bccfa839aa4b38489c76.wasm", "composeResources/com.zeronolidge.speechapp.res/font/andika_bold.ttf", "composeResources/com.zeronolidge.speechapp.res/font/noto_color_emoji.ttf", "composeResources/com.zeronolidge.speechapp.res/font/sniglet_extrabold.ttf", "composeResources/com.zeronolidge.speechapp.res/font/sniglet_regular.ttf", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "index.html", "manifest.webmanifest", "talkandlearn.js", "talkandlearn.js.LICENSE.txt", "talkandlearn.js.map"];
+const PRECACHE = ["audio/letters.html", "audio/manifest.json", "bccfa839aa4b38489c76.wasm", "composeResources/com.zeronolidge.speechapp.res/font/andika_bold.ttf", "composeResources/com.zeronolidge.speechapp.res/font/noto_color_emoji.ttf", "composeResources/com.zeronolidge.speechapp.res/font/sniglet_extrabold.ttf", "composeResources/com.zeronolidge.speechapp.res/font/sniglet_regular.ttf", "e0e676aa6c2fe12193d0.wasm", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "index.html", "manifest.webmanifest", "talkandlearn.js", "talkandlearn.js.LICENSE.txt", "talkandlearn.js.map"];
 
 const lasting = (path) => path.endsWith('.wasm') || /audio\/[0-9a-f-]+\.mp3$/.test(path);
 
