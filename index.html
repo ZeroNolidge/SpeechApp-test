@@ -59,7 +59,11 @@
 <script>
     // Works offline and picks up new versions: see sw.js.
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
+                try { reg.update(); } catch (e) {}
+            }).catch(() => {});
+        });
         // Once the service worker is running, every file is saved: the app works offline.
         navigator.serviceWorker.ready.then(() => { window.__tlOffline = true; });
     }
