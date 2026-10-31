@@ -1,3 +1,3 @@
 # SpeechApp-test
 
-Test build of claude-loop 5ca5cf5 (balloon game + Rory's Kitchen with Ruby's fixes), not the live app.
+Test build of claude-loop ff2bfa2 (balloon game + Rory's Kitchen with Ruby's fixes), not the live app.
